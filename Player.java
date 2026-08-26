@@ -11,6 +11,8 @@ abstract class Player{
     
     public Player(String name, int size){this.name=name;this.size=size;}
     public int getScore(){return score;}
+    public int getGuesses(){return guesses;}
+    public int getCatsFound(){return catsFound;}
     public void recordGuess(GuessResult result){guesses++;
         score += result.getScore();
         if(result==GuessResult.CORRECT){catsFound++;}

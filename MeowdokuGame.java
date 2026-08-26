@@ -6,22 +6,43 @@ class MeowdokuGame{
     private int numberOfCats;
     private GameBoard board;
     private Player player;
+    private Position revealedCat;
     public MeowdokuGame(Player player, int size){
         this.player=player;
         this.board = new GameBoard(size);
         numberOfCats = size;
     }
+
+    public Position start(){
+        if(revealedCat==null){
+            revealedCat = board.revealRandomCat();
+            player.recordRevealedCat();
+        }
+        return revealedCat;
+    }
+
+    public GuessResult playTurn(){
+        Position playerGuess = player.makeGuess();
+        GuessResult result = board.checkGuess(playerGuess);
+        player.recordGuess(result);
+        return result;
+    }
+
+    public boolean isComplete(){
+        return player.allCatsFound(numberOfCats);
+    }
+
+    public GameBoard getBoard(){return board;}
+
+    public Player getPlayer(){return player;}
     
     public void play(){
-        Position revealedCat = board.revealRandomCat();
-        player.recordRevealedCat();
-        System.out.printf("A cat has been revealed at %s!%n", revealedCat);
+        Position starterCat = start();
+        System.out.printf("A cat has been revealed at %s!%n", starterCat);
 
-        while(player.allCatsFound(numberOfCats)==false){
+        while(!isComplete()){
             System.out.println(board);
-            Position playerGuess = player.makeGuess();
-            GuessResult result = board.checkGuess(playerGuess);
-            player.recordGuess(result);
+            GuessResult result = playTurn();
             System.out.printf(result.getMessage()+"\n");
             System.out.printf("Score: %d\n",player.getScore());
         }
