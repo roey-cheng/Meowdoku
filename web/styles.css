@@ -395,17 +395,6 @@ select:focus-visible {
 }
 .cell:disabled { opacity: 1; }
 
-.cell::before {
-    content: attr(data-region);
-    position: absolute;
-    top: 4px;
-    left: 5px;
-    color: #5f4966;
-    font-size: clamp(.34rem, 1.1vw, .5rem);
-    line-height: 1;
-    pointer-events: none;
-}
-
 .region-0 { --cell-colour: #d88eae; }
 .region-1 { --cell-colour: #edb8cd; }
 .region-2 { --cell-colour: #b99ed1; }
