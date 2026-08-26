@@ -15,6 +15,7 @@ abstract class Player{
         score += result.getScore();
         if(result==GuessResult.CORRECT){catsFound++;}
     }
+    public void recordRevealedCat(){catsFound++;}
     public boolean allCatsFound(int numberOfCats){
         if(numberOfCats==catsFound)return true;
         return false;
