@@ -8,7 +8,6 @@ class GameBoard{
     private int size;
     private Cell[][] board;
     private int[] solution;
-    private Colour[] colours = {Colour.BLUE,Colour.RED, Colour.GREEN,Colour.YELLOW};
     private Random random=new Random(30);
 
     static List<Integer> createAvailableColumns(int size) {
@@ -23,7 +22,6 @@ class GameBoard{
         if (size < 1) {
             throw new IllegalArgumentException("Board size must be positive");
         }
-
         int[] generatedSolution = new int[size];
         Arrays.fill(generatedSolution, -1);
         List<Integer> availableColumns = createAvailableColumns(size);
@@ -60,35 +58,71 @@ class GameBoard{
     }
     
     public GameBoard(int size){this.size=size;
-        int choice = random.nextInt(2);
-        if(choice==0){solution= new int[]{2, 0, 3, 1};}else{
-            solution = new int[]{1, 3, 0, 2};
-        }
+        solution = generateSolution(size);
         board = new Cell[size][size];
         initialiseBoard();
     }
     
     private void placeInitialColours(){
         for(int i=0;i<size;i++){
-            board[i][solution[i]] = new Cell(colours[i]);
+            board[i][solution[i]] = new Cell(i);
         }
     }
     
-    private void expandRegion(int row, int column, Colour colour){
+    private void expandRegion(int row, int column, int regionId){
         for(int r=row-1;r<=row+1;r++){
             for(int c=column-1;c<=column+1;c++){
                 if((r>=0&&r<size)&&(c>=0&&c<size)){
-                    if(board[r][c]==null)board[r][c] = new Cell(colour);
+                    if(board[r][c]==null)board[r][c] = new Cell(regionId);
+                }
+            }
+        }
+    }
+
+    public void fillUnassignedCells(){
+        List<Position> startingPositions = new ArrayList<>();
+        for (int row = 0; row < size; row++) {
+            for (int column = 0; column < size; column++) {
+                if (board[row][column] != null) {
+                    startingPositions.add(new Position(row, column));
+                }
+            }
+        }
+        Collections.shuffle(startingPositions, random);
+
+        Queue<Position> queue = new ArrayDeque<>(startingPositions);
+        int[][] directions = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+
+        while (!queue.isEmpty()) {
+            Position current = queue.remove();
+            int row = current.getRow();
+            int column = current.getColumn();
+            int regionId = board[row][column].getRegionId();
+
+            for (int[] direction : directions) {
+                int nextRow = row + direction[0];
+                int nextColumn = column + direction[1];
+
+                if (nextRow >= 0 && nextRow < size
+                        && nextColumn >= 0 && nextColumn < size
+                        && board[nextRow][nextColumn] == null) {
+                    board[nextRow][nextColumn] = new Cell(regionId);
+                    queue.add(new Position(nextRow, nextColumn));
                 }
             }
         }
     }
     private void initialiseBoard(){
-        List<Colour> list = Arrays.asList(colours);
-        Collections.shuffle(list, random);
-
         placeInitialColours();
-        for(int row=0;row<size;row++)expandRegion(row, solution[row], colours[row]);
+        for(int row=0;row<size;row++)expandRegion(row, solution[row], row);
+        fillUnassignedCells();
+    }
+
+    public Position revealRandomCat() {
+        int row = random.nextInt(size);
+        int column = solution[row];
+        board[row][column].setState(CellState.FOUND_CAT);
+        return new Position(row, column);
     }
     
     public GuessResult checkGuess(Position position){

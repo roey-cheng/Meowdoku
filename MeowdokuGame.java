@@ -2,8 +2,6 @@
  * Author: Ruyi Cheng
  * Purpose: Runs the game loop, reports guess results, and prints final statistics.
  */
-import java.util.*;
-
 class MeowdokuGame{
     private int numberOfCats;
     private GameBoard board;
@@ -15,7 +13,10 @@ class MeowdokuGame{
     }
     
     public void play(){
-        Scanner sc = new Scanner(System.in);
+        Position revealedCat = board.revealRandomCat();
+        player.recordRevealedCat();
+        System.out.printf("A cat has been revealed at %s!%n", revealedCat);
+
         while(player.allCatsFound(numberOfCats)==false){
             System.out.println(board);
             Position playerGuess = player.makeGuess();
