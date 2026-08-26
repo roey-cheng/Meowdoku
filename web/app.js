@@ -1,57 +1,72 @@
+function createClickResolver({
+    onSingle,
+    onDouble,
+    delay = 280,
+    setTimer = setTimeout,
+    clearTimer = clearTimeout
+}) {
+    let pendingClick = null;
+
+    return event => {
+        if (event.detail === 0 || event.detail > 1) {
+            if (pendingClick !== null) clearTimer(pendingClick);
+            pendingClick = null;
+            onDouble();
+            return;
+        }
+
+        pendingClick = setTimer(() => {
+            pendingClick = null;
+            onSingle();
+        }, delay);
+    };
+}
+
+function setCellMarked(button, marked, label) {
+    button.innerHTML = marked
+        ? '<span class="mark-token" aria-hidden="true">×</span>'
+        : "";
+    button.setAttribute("aria-label", label);
+}
+
+createClickResolver.setCellMarked = setCellMarked;
+if (typeof module !== "undefined") module.exports = createClickResolver;
+
+if (typeof document !== "undefined") {
+const setupScreen = document.querySelector("#setup-screen");
+const gameScreen = document.querySelector("#game-screen");
 const boardElement = document.querySelector("#board");
 const sizeSelect = document.querySelector("#board-size");
 const newGameButton = document.querySelector("#new-game");
-const playAgainButton = document.querySelector("#play-again");
-const modeButtons = [...document.querySelectorAll(".mode-button")];
-const modeHelp = document.querySelector("#mode-help");
+const restartButton = document.querySelector("#restart");
+const showRulesButton = document.querySelector("#show-rules");
+const rulesDialog = document.querySelector("#rules-dialog");
 const messageElement = document.querySelector("#message");
 const scoreElement = document.querySelector("#score");
 const guessesElement = document.querySelector("#guesses");
-const catsFoundElement = document.querySelector("#cats-found");
-const puzzleTitle = document.querySelector("#puzzle-title");
-const gameBadge = document.querySelector("#game-badge");
+const currentSize = document.querySelector("#current-size");
 const completionCard = document.querySelector("#completion");
 const completionSummary = document.querySelector("#completion-summary");
 
 let game = null;
-let mode = "guess";
 let busy = false;
 const localMarks = new Set();
 
 newGameButton.addEventListener("click", startNewGame);
-playAgainButton.addEventListener("click", startNewGame);
-
-for (const button of modeButtons) {
-    button.addEventListener("click", () => setMode(button.dataset.mode));
-}
-
-restoreGame();
-
-async function restoreGame() {
-    try {
-        const response = await fetch("/api/game");
-        if (response.status === 404) return;
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "Could not restore the game");
-        game = data;
-        sizeSelect.value = String(game.size);
-        renderGame();
-    } catch (error) {
-        showMessage(error.message, "error");
-    }
-}
+restartButton.addEventListener("click", showSetup);
+showRulesButton.addEventListener("click", () => rulesDialog.showModal());
 
 async function startNewGame() {
     if (busy) return;
     setBusy(true);
 
     try {
-        const newGame = await requestJson(`/api/game?size=${encodeURIComponent(sizeSelect.value)}`, {
+        game = await requestJson(`/api/game?size=${encodeURIComponent(sizeSelect.value)}`, {
             method: "POST"
         });
-        game = newGame;
         localMarks.clear();
-        setMode("guess");
+        setupScreen.hidden = true;
+        gameScreen.hidden = false;
         renderGame();
     } catch (error) {
         showMessage(error.message, "error");
@@ -60,16 +75,12 @@ async function startNewGame() {
     }
 }
 
-function setMode(nextMode) {
-    mode = nextMode;
-    for (const button of modeButtons) {
-        const active = button.dataset.mode === mode;
-        button.classList.toggle("active", active);
-        button.setAttribute("aria-pressed", String(active));
-    }
-    modeHelp.textContent = mode === "guess"
-        ? "Choose a cell where you think a cat is hiding."
-        : "Tap hidden cells to add or remove your own no-cat marks.";
+function showSetup() {
+    game = null;
+    completionCard.hidden = true;
+    gameScreen.hidden = true;
+    setupScreen.hidden = false;
+    sizeSelect.focus();
 }
 
 function renderGame(focusRequest = null) {
@@ -77,15 +88,12 @@ function renderGame(focusRequest = null) {
 
     scoreElement.textContent = game.score;
     guessesElement.textContent = game.guesses;
-    catsFoundElement.textContent = `${game.catsFound} / ${game.size}`;
-    puzzleTitle.textContent = `${game.size} × ${game.size} colour puzzle`;
-    gameBadge.textContent = game.complete ? "Complete" : "In progress";
-    gameBadge.className = `game-badge ${game.complete ? "complete" : "active"}`;
+    currentSize.textContent = `Size: ${game.size}×${game.size}`;
     showMessage(game.message, game.complete ? "success" : "");
 
-    boardElement.className = "board";
     boardElement.innerHTML = "";
     boardElement.style.gridTemplateColumns = `repeat(${game.size}, 1fr)`;
+    boardElement.style.gridTemplateRows = `repeat(${game.size}, 1fr)`;
     boardElement.setAttribute("aria-label", `${game.size} by ${game.size} Meowdoku board`);
 
     for (let row = 0; row < game.size; row++) {
@@ -97,7 +105,7 @@ function renderGame(focusRequest = null) {
     completionCard.hidden = !game.complete;
     if (game.complete) {
         completionSummary.textContent = `Final score: ${game.score} points from ${game.guesses} guesses.`;
-        requestAnimationFrame(() => playAgainButton.focus());
+        requestAnimationFrame(() => restartButton.focus());
     } else if (focusRequest) {
         requestAnimationFrame(() => restoreBoardFocus(focusRequest));
     }
@@ -105,73 +113,59 @@ function renderGame(focusRequest = null) {
 
 function createCell(row, column) {
     const cell = game.board[row][column];
-    const key = cellKey(row, column);
     const button = document.createElement("button");
     button.type = "button";
     button.className = `cell region-${cell.regionId % 9}`;
     button.dataset.row = row;
     button.dataset.column = column;
 
-    addRegionBorders(button, row, column, cell.regionId);
-
     if (cell.state === "FOUND_CAT") {
-        button.innerHTML = '<span class="cat-token" aria-hidden="true">🐱</span>';
+        button.innerHTML = '<span class="cat-token" aria-hidden="true">=^.^=</span>';
         button.disabled = true;
     } else if (cell.state === "WRONG_GUESS") {
         button.innerHTML = '<span class="wrong-token" aria-hidden="true">×</span>';
         button.disabled = true;
-    } else if (localMarks.has(key)) {
+    } else if (localMarks.has(cellKey(row, column))) {
         button.innerHTML = '<span class="mark-token" aria-hidden="true">×</span>';
     }
 
     if (game.complete) button.disabled = true;
 
-    button.setAttribute("aria-label", cellLabel(row, column, cell, localMarks.has(key)));
-    button.addEventListener("click", () => handleCellClick(row, column));
+    button.setAttribute("aria-label", cellLabel(
+        row, column, cell, localMarks.has(cellKey(row, column))
+    ));
+    button.addEventListener("click", createClickResolver({
+        onSingle: () => toggleMark(row, column, button),
+        onDouble: () => guessCell(row, column)
+    }));
     return button;
 }
 
-function addRegionBorders(button, row, column, regionId) {
-    if (row === 0 || game.board[row - 1][column].regionId !== regionId) {
-        button.classList.add("region-top");
-    }
-    if (row === game.size - 1 || game.board[row + 1][column].regionId !== regionId) {
-        button.classList.add("region-bottom");
-    }
-    if (column === 0 || game.board[row][column - 1].regionId !== regionId) {
-        button.classList.add("region-left");
-    }
-    if (column === game.size - 1 || game.board[row][column + 1].regionId !== regionId) {
-        button.classList.add("region-right");
-    }
-}
-
-async function handleCellClick(row, column) {
+function toggleMark(row, column, button) {
     if (!game || busy || game.complete) return;
-    const cell = game.board[row][column];
-    if (cell.state !== "HIDDEN") return;
+    if (game.board[row][column].state !== "HIDDEN") return;
 
     const key = cellKey(row, column);
-    if (mode === "mark") {
-        if (localMarks.has(key)) localMarks.delete(key);
-        else localMarks.add(key);
-        renderGame({ row, column });
-        return;
-    }
+    if (localMarks.has(key)) localMarks.delete(key);
+    else localMarks.add(key);
+    setCellMarked(
+        button,
+        localMarks.has(key),
+        cellLabel(row, column, game.board[row][column], localMarks.has(key))
+    );
+}
 
-    localMarks.delete(key);
+async function guessCell(row, column) {
+    if (!game || busy || game.complete) return;
+    if (game.board[row][column].state !== "HIDDEN") return;
+
+    localMarks.delete(cellKey(row, column));
     setBusy(true);
     try {
         game = await requestJson(`/api/guess?row=${row}&column=${column}`, {
             method: "POST"
         });
-        renderGame({
-            row,
-            column,
-            animation: game.board[row][column].state === "FOUND_CAT"
-                ? "correct-pop"
-                : "wrong-shake"
-        });
+        renderGame({ row, column });
     } catch (error) {
         showMessage(error.message, "error");
     } finally {
@@ -179,12 +173,14 @@ async function handleCellClick(row, column) {
     }
 }
 
-function restoreBoardFocus({ row, column, animation }) {
+function cellKey(row, column) {
+    return `${row},${column}`;
+}
+
+function restoreBoardFocus({ row, column }) {
     const changedCell = boardElement.querySelector(
         `[data-row="${row}"][data-column="${column}"]`
     );
-    if (changedCell && animation) changedCell.classList.add(animation);
-
     if (changedCell && !changedCell.disabled) {
         changedCell.focus();
         return;
@@ -206,14 +202,9 @@ function cellLabel(row, column, cell, marked) {
     return `Row ${row + 1}, column ${column + 1}, colour region ${cell.regionId + 1}, ${state}`;
 }
 
-function cellKey(row, column) {
-    return `${row},${column}`;
-}
-
 function setBusy(nextBusy) {
     busy = nextBusy;
     newGameButton.disabled = busy;
-    for (const button of modeButtons) button.disabled = busy;
     boardElement.setAttribute("aria-busy", String(busy));
 }
 
@@ -227,4 +218,5 @@ async function requestJson(url, options) {
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "Something went wrong");
     return data;
+}
 }

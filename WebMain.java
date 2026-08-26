@@ -213,6 +213,9 @@ public class WebMain {
         } else if (requestPath.equals("/styles.css")) {
             fileName = "styles.css";
             contentType = "text/css; charset=utf-8";
+        } else if (requestPath.equals("/press-start-2p.ttf")) {
+            fileName = "fonts/PressStart2P-Regular.ttf";
+            contentType = "font/ttf";
         } else if (requestPath.equals("/app.js")) {
             fileName = "app.js";
             contentType = "text/javascript; charset=utf-8";

@@ -20,7 +20,18 @@ public class WebServerTest {
             if (home.statusCode() != 200 || !home.body().contains("Meowdoku")) {
                 throw new AssertionError("Home page did not load the Meowdoku UI");
             }
+            if (!home.body().contains("id=\"setup-screen\"")
+                    || !home.body().matches(
+                            "(?s).*<section[^>]*id=\"game-screen\"[^>]*hidden[^>]*>.*")) {
+                throw new AssertionError(
+                        "Home page should open on setup with the game screen hidden");
+            }
+            if (!home.body().contains("id=\"show-rules\"")
+                    || !home.body().contains("<dialog id=\"rules-dialog\"")) {
+                throw new AssertionError("Setup should provide the game-rules dialog");
+            }
             assertStatus(client, "GET", baseUrl + "/styles.css", 200);
+            assertStatus(client, "GET", baseUrl + "/press-start-2p.ttf", 200);
             assertStatus(client, "GET", baseUrl + "/app.js", 200);
             assertStatus(client, "GET", baseUrl + "/private.txt", 404);
             assertStatus(client, "GET", baseUrl + "/api/game", 404);
