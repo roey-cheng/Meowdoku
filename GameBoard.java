@@ -137,6 +137,16 @@ class GameBoard{
             return GuessResult.WRONG;
         }
     }
+
+    public int getSize(){return size;}
+
+    public int getRegionId(int row, int column){
+        return board[row][column].getRegionId();
+    }
+
+    public CellState getCellState(int row, int column){
+        return board[row][column].getState();
+    }
     
     public String toString(){
         StringBuilder s = new StringBuilder();

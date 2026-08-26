@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#fff8eb">
+    <meta name="description" content="A cosy, colourful logic puzzle about finding hidden cats.">
+    <title>Meowdoku — A cosy cat puzzle</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/app.js" defer></script>
+</head>
+<body>
+    <div class="page-shell">
+        <header class="site-header">
+            <a class="brand" href="/" aria-label="Meowdoku home">
+                <span class="brand-mark" aria-hidden="true">🐾</span>
+                <span>
+                    <strong>Meowdoku</strong>
+                    <small>A cosy cat puzzle</small>
+                </span>
+            </a>
+            <div class="rule-chips" aria-label="Core rules">
+                <span>1 per row</span>
+                <span>1 per column</span>
+                <span>1 per colour</span>
+                <span>No touching</span>
+            </div>
+        </header>
+
+        <main class="game-layout">
+            <aside class="control-panel" aria-label="Game controls">
+                <section class="card new-game-card">
+                    <p class="eyebrow">New puzzle</p>
+                    <h1>Find every hidden cat.</h1>
+                    <p class="intro">Choose a board size. We will reveal one friendly cat to help you begin.</p>
+
+                    <label for="board-size">Board size</label>
+                    <div class="start-row">
+                        <select id="board-size" aria-label="Board size">
+                            <option value="4">4 × 4</option>
+                            <option value="5" selected>5 × 5</option>
+                            <option value="6">6 × 6</option>
+                            <option value="7">7 × 7</option>
+                            <option value="8">8 × 8</option>
+                            <option value="9">9 × 9</option>
+                        </select>
+                        <button id="new-game" class="primary-button" type="button">Start new game</button>
+                    </div>
+                </section>
+
+                <section class="card stats-card" aria-label="Game statistics">
+                    <div class="stat">
+                        <span>Score</span>
+                        <strong id="score">0</strong>
+                    </div>
+                    <div class="stat">
+                        <span>Guesses</span>
+                        <strong id="guesses">0</strong>
+                    </div>
+                    <div class="stat">
+                        <span>Cats</span>
+                        <strong id="cats-found">0 / 0</strong>
+                    </div>
+                </section>
+
+                <section class="card tool-card">
+                    <div class="section-heading">
+                        <div>
+                            <p class="eyebrow">Your tool</p>
+                            <h2>What should a click do?</h2>
+                        </div>
+                    </div>
+                    <div class="mode-switch" role="group" aria-label="Cell click mode">
+                        <button class="mode-button active" data-mode="guess" type="button" aria-pressed="true">
+                            <span aria-hidden="true">🐱</span>
+                            Guess cat
+                        </button>
+                        <button class="mode-button" data-mode="mark" type="button" aria-pressed="false">
+                            <span aria-hidden="true">×</span>
+                            Mark empty
+                        </button>
+                    </div>
+                    <p id="mode-help" class="mode-help">Choose a cell where you think a cat is hiding.</p>
+                </section>
+
+                <details class="card rules-card">
+                    <summary>How to play</summary>
+                    <ul>
+                        <li>There is exactly one cat in every row and column.</li>
+                        <li>There is exactly one cat in every colour region.</li>
+                        <li>Cats never touch, even diagonally.</li>
+                        <li>A correct guess earns 10 points; a wrong guess costs 1.</li>
+                    </ul>
+                </details>
+            </aside>
+
+            <section class="board-panel" aria-label="Meowdoku board">
+                <div class="board-heading">
+                    <div>
+                        <p class="eyebrow">Current puzzle</p>
+                        <h2 id="puzzle-title">Ready when you are</h2>
+                    </div>
+                    <span id="game-badge" class="game-badge">Not started</span>
+                </div>
+
+                <div id="message" class="message" role="status" aria-live="polite">
+                    Pick a size and start a new game.
+                </div>
+
+                <div class="board-wrap">
+                    <div id="board" class="board empty" aria-label="Game board">
+                        <div class="empty-board">
+                            <span class="sleeping-cat" aria-hidden="true">🐈</span>
+                            <strong>Your cats are napping.</strong>
+                            <span>Start a puzzle to wake them up.</span>
+                        </div>
+                    </div>
+
+                    <div id="completion" class="completion-card" hidden>
+                        <span class="completion-cat" aria-hidden="true">😺</span>
+                        <p class="eyebrow">Puzzle complete</p>
+                        <h2>You found the whole cuddle!</h2>
+                        <p id="completion-summary"></p>
+                        <button id="play-again" class="primary-button" type="button">Play another</button>
+                    </div>
+                </div>
+
+                <p class="board-tip"><span aria-hidden="true">✦</span> Tip: use “Mark empty” while you reason. Marks never affect your score.</p>
+            </section>
+        </main>
+
+        <footer>
+            <span>Made with Java, patience, and a suspicious amount of cat hair.</span>
+        </footer>
+    </div>
+</body>
+</html>
