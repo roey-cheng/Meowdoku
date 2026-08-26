@@ -6,9 +6,12 @@ const modulePath = path.join(__dirname, "web", "app.js");
 assert.ok(fs.existsSync(modulePath), "click resolver module should exist");
 const createClickResolver = require(modulePath);
 const setCellMarked = createClickResolver.setCellMarked;
+const handleCellKey = createClickResolver.handleCellKey;
 
 assert.equal(typeof setCellMarked, "function",
     "cell marks should be updated without rebuilding the board");
+assert.equal(typeof handleCellKey, "function",
+    "keyboard users should be able to mark and guess explicitly");
 
 function fakeTimer() {
     let callback = null;
@@ -49,6 +52,22 @@ function resolverFixture() {
     assert.equal(calls.single, 0, "single click should wait for a possible second click");
     timer.run();
     assert.deepEqual(calls, { single: 1, double: 0 });
+}
+
+{
+    const { timer, calls, resolveClick } = resolverFixture();
+    resolveClick({ detail: 0 });
+    timer.run();
+    assert.deepEqual(calls, { single: 0, double: 0 },
+        "synthetic keyboard clicks should not duplicate key handling");
+}
+
+{
+    const calls = { mark: 0, guess: 0, prevented: 0 };
+    const event = key => ({ key, preventDefault: () => calls.prevented++ });
+    handleCellKey(event(" "), () => calls.mark++, () => calls.guess++);
+    handleCellKey(event("Enter"), () => calls.mark++, () => calls.guess++);
+    assert.deepEqual(calls, { mark: 1, guess: 1, prevented: 2 });
 }
 
 {

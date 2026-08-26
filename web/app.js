@@ -8,7 +8,9 @@ function createClickResolver({
     let pendingClick = null;
 
     return event => {
-        if (event.detail === 0 || event.detail > 1) {
+        if (event.detail === 0) return;
+
+        if (event.detail > 1) {
             if (pendingClick !== null) clearTimer(pendingClick);
             pendingClick = null;
             onDouble();
@@ -22,6 +24,16 @@ function createClickResolver({
     };
 }
 
+function handleCellKey(event, onMark, onGuess) {
+    if (event.key === " ") {
+        event.preventDefault();
+        onMark();
+    } else if (event.key === "Enter") {
+        event.preventDefault();
+        onGuess();
+    }
+}
+
 function setCellMarked(button, marked, label) {
     button.innerHTML = marked
         ? '<span class="mark-token" aria-hidden="true">×</span>'
@@ -30,6 +42,7 @@ function setCellMarked(button, marked, label) {
 }
 
 createClickResolver.setCellMarked = setCellMarked;
+createClickResolver.handleCellKey = handleCellKey;
 if (typeof module !== "undefined") module.exports = createClickResolver;
 
 if (typeof document !== "undefined") {
@@ -118,6 +131,7 @@ function createCell(row, column) {
     button.className = `cell region-${cell.regionId % 9}`;
     button.dataset.row = row;
     button.dataset.column = column;
+    button.dataset.region = String.fromCharCode(65 + cell.regionId);
 
     if (cell.state === "FOUND_CAT") {
         button.innerHTML = '<span class="cat-token" aria-hidden="true">=^.^=</span>';
@@ -138,6 +152,11 @@ function createCell(row, column) {
         onSingle: () => toggleMark(row, column, button),
         onDouble: () => guessCell(row, column)
     }));
+    button.addEventListener("keydown", event => handleCellKey(
+        event,
+        () => toggleMark(row, column, button),
+        () => guessCell(row, column)
+    ));
     return button;
 }
 
@@ -159,12 +178,12 @@ async function guessCell(row, column) {
     if (!game || busy || game.complete) return;
     if (game.board[row][column].state !== "HIDDEN") return;
 
-    localMarks.delete(cellKey(row, column));
     setBusy(true);
     try {
         game = await requestJson(`/api/guess?row=${row}&column=${column}`, {
             method: "POST"
         });
+        localMarks.delete(cellKey(row, column));
         renderGame({ row, column });
     } catch (error) {
         showMessage(error.message, "error");
