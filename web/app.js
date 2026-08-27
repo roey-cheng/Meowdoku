@@ -65,7 +65,6 @@ const scoreElement = document.querySelector("#score");
 const guessesElement = document.querySelector("#guesses");
 const livesElement = document.querySelector("#lives");
 const heartElements = [...livesElement.querySelectorAll(".pixel-heart")];
-const currentSize = document.querySelector("#current-size");
 const completionCard = document.querySelector("#completion");
 const completionKicker = document.querySelector("#completion-kicker");
 const completionTitle = document.querySelector("#completion-title");
@@ -138,7 +137,6 @@ function renderGame(focusRequest = null) {
         heart.classList.toggle("spent", index >= game.livesRemaining);
     });
     livesElement.setAttribute("aria-label", livesLabel(game.livesRemaining));
-    currentSize.textContent = `Size: ${game.size}×${game.size}`;
     showMessage(game.message, game.complete ? "success" : game.lost ? "error" : "");
 
     boardElement.innerHTML = "";

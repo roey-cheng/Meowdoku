@@ -103,7 +103,7 @@ button:disabled { cursor: not-allowed; opacity: .68; }
 .setup-card {
     position: relative;
     width: min(100%, 460px);
-    padding: 78px clamp(26px, 6vw, 48px) 42px;
+    padding: 78px clamp(26px, 6vw, 48px) 30px;
     text-align: center;
 }
 
@@ -128,13 +128,33 @@ button:disabled { cursor: not-allowed; opacity: .68; }
 }
 
 .window-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
     padding: 2px 5px;
     border: 2px solid #ffffff;
     color: var(--purple-dark);
     background: var(--pink-light);
-    word-spacing: 6px;
+    word-spacing: 0;
     letter-spacing: 0;
     text-shadow: none;
+}
+
+.window-maximize {
+    position: relative;
+    top: -3px;
+    font-size: 1.3em;
+    line-height: 1;
+}
+
+.window-minimize {
+    position: relative;
+    top: -4px;
+}
+
+.window-close {
+    position: relative;
+    top: 2px;
 }
 
 .setup-cat {
@@ -170,16 +190,46 @@ h1, h2 {
 }
 
 .setup-card h1 {
-    font-size: clamp(1.65rem, 6vw, 2.55rem);
+    position: relative;
+    left: 50%;
+    width: max-content;
+    font-size: clamp(2.15rem, 8.7vw, 3.35rem);
     letter-spacing: -.08em;
+    transform: translate(-50%, 14px);
 }
 
-.setup-card > p:not(.eyebrow) {
-    margin: 17px auto 29px;
+.assignment-title {
+    display: grid;
+    justify-items: center;
+    margin: 0 auto 12px;
+    color: #a34279;
+    font-family: "Press Start 2P", monospace;
+    font-size: clamp(.64rem, 2vw, .8rem);
+    font-weight: 900;
+    line-height: 1.8;
+    white-space: nowrap;
+}
+
+.assignment-title span:last-child {
+    transform: translateX(-4px);
+}
+
+.assignment-title span:first-child {
+    transform: translateX(-5px);
+}
+
+.assignment-title small {
+    display: inline-block;
+    transform: translateX(-5px);
+}
+
+.setup-description {
+    margin: 47px auto 30px;
     color: var(--muted);
     font-size: .72rem;
     font-weight: 700;
     line-height: 1.9;
+    transform: translateY(6px);
 }
 
 label {
@@ -338,12 +388,13 @@ select:focus-visible {
     justify-content: center;
     gap: clamp(16px, 7vw, 36px);
     margin-top: 8px;
+    padding: 0 clamp(6px, 2.5vw, 12px);
 }
 
 .score-row p {
     margin: 0;
     color: #934275;
-    font-size: clamp(0.9rem, 3.3vw, 1.28rem);
+    font-size: clamp(0.95rem, 3.6vw, 1.35rem);
     font-weight: 900;
 }
 
@@ -531,7 +582,11 @@ select:focus-visible {
 
 .completion-card h2 { margin-bottom: 10px; }
 .completion-card p:not(.eyebrow) { color: var(--muted); line-height: 1.5; }
-.completion-card .primary-button { max-width: 190px; }
+.completion-card .primary-button {
+    max-width: 190px;
+    outline: 3px dashed #ffffff;
+    outline-offset: -8px;
+}
 
 footer {
     padding-top: 30px;
@@ -551,8 +606,8 @@ footer {
     .game-summary { margin-bottom: 12px; padding-top: 10px; }
     .game-summary::before { margin-bottom: 4px; }
     .game-summary h1 { font-size: 1.05rem; }
-    .score-row { justify-content: space-between; gap: 6px; }
-    .score-row p { font-size: .72rem; }
+    .score-row { justify-content: center; gap: 10px; padding: 0 8px; }
+    .score-row p { font-size: .86rem; }
     .lives { margin-top: 10px; gap: 8px; }
     .pixel-heart {
         width: 22px;

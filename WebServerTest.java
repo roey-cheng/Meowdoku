@@ -164,6 +164,19 @@ public class WebServerTest {
         if (home.statusCode() != 200 || !home.body().contains("Meowdoku")) {
             throw new AssertionError("Home page did not load the Meowdoku UI");
         }
+        String courseCode = "<span>COMPSCI 230</span>";
+        String courseName = "<small>Object Oriented Software Development</small>";
+        String assignmentTitle = "<span>Assignment 1 Extended Version</span>";
+        String meowdokuHeading = "<h1 id=\"setup-title\">Meowdoku</h1>";
+        if (!home.body().contains("<title>Meowdoku CS230A1 Ruyi</title>")
+                || home.body().indexOf(courseCode) < 0
+                || home.body().indexOf(courseCode) > home.body().indexOf(courseName)
+                || home.body().indexOf(courseName) > home.body().indexOf(assignmentTitle)
+                || home.body().indexOf(assignmentTitle) > home.body().indexOf(meowdokuHeading)
+                || home.body().contains("Choose your puzzle size")) {
+            throw new AssertionError(
+                    "Setup should show the assignment title above Meowdoku");
+        }
         assertNoSessionCookie(home);
         assertSecurityHeaders(home);
         if (!home.body().contains("id=\"setup-screen\"")
@@ -197,7 +210,7 @@ public class WebServerTest {
         }
         if (home.body().split(
                 "<span class=\"pixel-heart\" aria-hidden=\"true\">\u2665</span>", -1
-        ).length - 1 != 3) {
+        ).length - 1 != 4) {
             throw new AssertionError("Life counter should use four pixel-font hearts");
         }
 
@@ -302,12 +315,20 @@ public class WebServerTest {
     }
 
     private static void testLostGame(String baseUrl, HttpClient client) throws Exception {
-        assertGame(send(client, "POST", baseUrl + "/api/game?size=4"), 4, 0);
+        HttpResponse<String> started = send(client, "POST", baseUrl + "/api/game?size=4");
+        assertGame(started, 4, 0);
+        int[] revealedCat = revealedCatPosition(started.body(), 4);
         HttpResponse<String> last = null;
         for (int column = 0; column < 4; column++) {
-            last = send(client, "POST", baseUrl + "/api/guess?row=0&column=" + column);
+            if (column == revealedCat[1]) continue;
+            last = send(client, "POST", baseUrl + "/api/guess?row=" + revealedCat[0]
+                    + "&column=" + column);
             assertStatus(last, 200);
         }
+        int otherRow = revealedCat[0] == 0 ? 1 : 0;
+        last = send(client, "POST", baseUrl + "/api/guess?row=" + otherRow
+                + "&column=" + revealedCat[1]);
+        assertStatus(last, 200);
         if (last == null || intField(last.body(), "livesRemaining") != 0
                 || !last.body().contains("\"lost\":true")
                 || !last.body().contains("\"complete\":false")) {
@@ -456,6 +477,18 @@ public class WebServerTest {
         int end = start;
         while (end < json.length() && Character.isDigit(json.charAt(end))) end++;
         return Integer.parseInt(json.substring(start, end));
+    }
+
+    private static int[] revealedCatPosition(String json, int size) {
+        var states = Pattern.compile("\\\"state\\\":\\\"([A-Z_]+)\\\"").matcher(json);
+        int index = 0;
+        while (states.find()) {
+            if (states.group(1).equals("FOUND_CAT")) {
+                return new int[]{index / size, index % size};
+            }
+            index++;
+        }
+        throw new AssertionError("Game JSON did not contain a revealed cat");
     }
 
     private static final class MutableClock implements LongSupplier {
