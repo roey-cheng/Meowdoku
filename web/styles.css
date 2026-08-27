@@ -603,7 +603,7 @@ footer {
     .page-shell { padding: 17px 8px; }
     .setup-screen { min-height: calc(100vh - 70px); }
     .setup-card { padding-inline: 22px; }
-    .game-summary { margin-bottom: 12px; padding-top: 10px; }
+    .game-summary { margin-bottom: 12px; }
     .game-summary::before { margin-bottom: 4px; }
     .game-summary h1 { font-size: 1.05rem; }
     .score-row { justify-content: center; gap: 10px; padding: 0 8px; }
