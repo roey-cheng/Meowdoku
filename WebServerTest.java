@@ -192,6 +192,12 @@ public class WebServerTest {
         if (!home.body().contains("id=\"setup-message\"")) {
             throw new AssertionError("Setup should provide a visible error message area");
         }
+        String tapHint = "<p class=\"tap-hint\">"
+                + "Tap once to mark. Double-tap to guess a cat.</p>";
+        if (!home.body().contains(tapHint)
+                || home.body().indexOf(tapHint) < home.body().indexOf("id=\"message\"")) {
+            throw new AssertionError("Game UI should explain tap and double-tap controls");
+        }
         if (!home.body().contains("id=\"lives\"")
                 || !home.body().contains("id=\"completion-title\"")) {
             throw new AssertionError("Game UI should show lives and an end-state title");
