@@ -1,7 +1,7 @@
 function createClickResolver({
     onSingle,
     onDouble,
-    delay = 280,
+    delay = 400,
     setTimer = setTimeout,
     clearTimer = clearTimeout
 }) {
@@ -10,8 +10,8 @@ function createClickResolver({
     return event => {
         if (event.detail === 0) return;
 
-        if (event.detail > 1) {
-            if (pendingClick !== null) clearTimer(pendingClick);
+        if (pendingClick !== null) {
+            clearTimer(pendingClick);
             pendingClick = null;
             onDouble();
             return;

@@ -85,6 +85,17 @@ function resolverFixture() {
 {
     const { timer, calls, resolveClick } = resolverFixture();
     resolveClick({ detail: 1 });
+    resolveClick({ detail: 1 });
+    assert.equal(timer.hasPending(), false,
+        "two mobile taps should cancel the pending mark");
+    timer.run();
+    assert.deepEqual(calls, { single: 0, double: 1 },
+        "two mobile taps should guess even when both click details are 1");
+}
+
+{
+    const { timer, calls, resolveClick } = resolverFixture();
+    resolveClick({ detail: 1 });
     timer.run();
     resolveClick({ detail: 1 });
     timer.run();
