@@ -38,20 +38,14 @@ public class WebMain {
                 sendJson(exchange, 404, errorJson("Not found"));
                 return;
             }
+            if (!exchange.getRequestMethod().equals("POST")) {
+                methodNotAllowed(exchange, "POST");
+                return;
+            }
+            if (rejectCrossOrigin(exchange)) return;
 
             synchronized (activeGame) {
-                if (exchange.getRequestMethod().equals("POST")) {
-                    if (rejectCrossOrigin(exchange)) return;
-                    createGame(exchange, activeGame);
-                } else if (exchange.getRequestMethod().equals("GET")) {
-                    if (activeGame.game == null) {
-                        sendJson(exchange, 404, errorJson("No game has been started"));
-                    } else {
-                        sendJson(exchange, 200, gameJson(activeGame, "Game restored"));
-                    }
-                } else {
-                    methodNotAllowed(exchange, "GET, POST");
-                }
+                createGame(exchange, activeGame);
             }
         });
 
@@ -79,13 +73,11 @@ public class WebMain {
             throws IOException {
         try {
             int size = intParameter(exchange, "size");
-            if (size < 4 || size > 9) {
-                throw new IllegalArgumentException("Board size must be between 4 and 9");
-            }
-
-            activeGame.player = new BrowserPlayer("Web Player", size);
-            activeGame.game = new MeowdokuGame(activeGame.player, size);
-            activeGame.game.start();
+            BrowserPlayer player = new BrowserPlayer("Web Player", size);
+            MeowdokuGame game = new MeowdokuGame(player, size);
+            game.start();
+            activeGame.player = player;
+            activeGame.game = game;
             sendJson(exchange, 200,
                     gameJson(activeGame, "A starter cat has been revealed"));
         } catch (IllegalArgumentException error) {
@@ -99,23 +91,18 @@ public class WebMain {
             sendJson(exchange, 404, errorJson("No game has been started"));
             return;
         }
-        if (activeGame.game.isComplete()) {
-            sendJson(exchange, 409, errorJson("The game is already complete"));
+        if (activeGame.game.isOver()) {
+            sendJson(exchange, 409, errorJson("The game is already over"));
             return;
         }
 
         try {
             int row = intParameter(exchange, "row");
             int column = intParameter(exchange, "column");
-            int size = activeGame.game.getBoard().getSize();
-            if (row < 0 || row >= size || column < 0 || column >= size) {
-                throw new IllegalArgumentException("Guess is outside the board");
-            }
-
             activeGame.player.setNextGuess(new Position(row, column));
             GuessResult result = activeGame.game.playTurn();
-            String message = activeGame.game.isComplete()
-                    ? "All cats found!"
+            String message = activeGame.game.isComplete() ? "All cats found!"
+                    : activeGame.game.isLost() ? "No hearts left!"
                     : result.getMessage();
             sendJson(exchange, 200, gameJson(activeGame, message));
         } catch (IllegalArgumentException error) {
@@ -133,7 +120,9 @@ public class WebMain {
                 .append("\"score\":").append(player.getScore()).append(',')
                 .append("\"guesses\":").append(player.getGuesses()).append(',')
                 .append("\"catsFound\":").append(player.getCatsFound()).append(',')
+                .append("\"livesRemaining\":").append(player.getLivesRemaining()).append(',')
                 .append("\"complete\":").append(game.isComplete()).append(',')
+                .append("\"lost\":").append(game.isLost()).append(',')
                 .append("\"message\":\"").append(jsonEscape(message)).append("\",")
                 .append("\"board\":[");
 

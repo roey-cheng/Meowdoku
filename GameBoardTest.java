@@ -7,9 +7,11 @@ public class GameBoardTest {
         testCellStoresRegionId();
         testAvailableColumns();
         testGeneratedSolutions();
+        testBoardRejectsUnsupportedSizes();
         testBoardsHaveNoUnassignedCells();
         testBoardSizeInputRejectsInvalidValues();
         testHumanPlayerRejectsInvalidPositions();
+        testBoardRejectsInvalidGuessPositions();
         testRevealedCatCountsAsAFreeHint();
         System.out.println("GameBoardTest passed");
     }
@@ -37,6 +39,20 @@ public class GameBoardTest {
         for (int size = 4; size <= 10; size++) {
             int[] solution = GameBoard.generateSolution(size);
             assertValidSolution(solution, size);
+        }
+    }
+
+    private static void testBoardRejectsUnsupportedSizes() {
+        assertInvalidBoardSize(3);
+        assertInvalidBoardSize(10);
+    }
+
+    private static void assertInvalidBoardSize(int size) {
+        try {
+            new GameBoard(size);
+            throw new AssertionError("Expected board size " + size + " to be rejected");
+        } catch (IllegalArgumentException expected) {
+            // Expected: GameBoard owns its supported size range.
         }
     }
 
@@ -74,6 +90,23 @@ public class GameBoardTest {
 
         if (guess.getRow() != 2 || guess.getColumn() != 3) {
             throw new AssertionError("Expected guess (2, 3), but got " + guess);
+        }
+    }
+
+    private static void testBoardRejectsInvalidGuessPositions() {
+        GameBoard board = new GameBoard(4);
+        assertInvalidGuess(board, new Position(-1, 0));
+        assertInvalidGuess(board, new Position(4, 0));
+        assertInvalidGuess(board, new Position(0, -1));
+        assertInvalidGuess(board, new Position(0, 4));
+    }
+
+    private static void assertInvalidGuess(GameBoard board, Position position) {
+        try {
+            board.checkGuess(position);
+            throw new AssertionError("Expected invalid guess " + position + " to be rejected");
+        } catch (IllegalArgumentException expected) {
+            // Expected: GameBoard owns coordinate validation.
         }
     }
 

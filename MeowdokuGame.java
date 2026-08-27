@@ -22,6 +22,7 @@ class MeowdokuGame{
     }
 
     public GuessResult playTurn(){
+        if(isOver()) throw new IllegalStateException("The game is already over");
         Position playerGuess = player.makeGuess();
         GuessResult result = board.checkGuess(playerGuess);
         player.recordGuess(result);
@@ -32,6 +33,10 @@ class MeowdokuGame{
         return player.allCatsFound(numberOfCats);
     }
 
+    public boolean isLost(){return player.getLivesRemaining()==0;}
+
+    public boolean isOver(){return isComplete()||isLost();}
+
     public GameBoard getBoard(){return board;}
 
     public Player getPlayer(){return player;}
@@ -40,13 +45,13 @@ class MeowdokuGame{
         Position starterCat = start();
         System.out.printf("A cat has been revealed at %s!%n", starterCat);
 
-        while(!isComplete()){
+        while(!isOver()){
             System.out.println(board);
             GuessResult result = playTurn();
             System.out.printf(result.getMessage()+"\n");
             System.out.printf("Score: %d\n",player.getScore());
         }
-        System.out.println("Congratulations!");
+        System.out.println(isComplete() ? "Congratulations!" : "Game over!");
         player.printStatistics();
     }
 }

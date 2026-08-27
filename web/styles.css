@@ -287,6 +287,14 @@ select {
 
 .primary-button:active:not(:disabled) { box-shadow: 3px 3px 0 var(--purple-dark); }
 
+.setup-message {
+    min-height: 1.2em;
+    margin-top: 18px;
+    color: #a1346e;
+    font-size: .62rem;
+    line-height: 1.6;
+}
+
 .primary-button:focus-visible,
 select:focus-visible {
     outline: 3px dashed #ffffff;
@@ -337,6 +345,30 @@ select:focus-visible {
     color: #934275;
     font-size: clamp(1.08rem, 4vw, 1.65rem);
     font-weight: 900;
+}
+
+.lives {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 20px;
+}
+
+.pixel-heart {
+    display: grid;
+    width: 32px;
+    height: 32px;
+    place-items: center;
+    color: #e879ad;
+    font-size: 30px;
+    line-height: 1;
+    text-shadow: 0 4px 0 #a5497b;
+}
+
+.pixel-heart.spent {
+    color: #ddcddd;
+    text-shadow: none;
 }
 
 .board-panel {
@@ -476,6 +508,13 @@ select:focus-visible {
     text-shadow: 3px 3px 0 #a5497b;
 }
 
+.completion-card.lost::before { content: "GAME_OVER.EXE              ×"; }
+.completion-card.lost .completion-cat {
+    color: #9d6c91;
+    background: #eaddea;
+    box-shadow: 5px 5px 0 #c6a5c6;
+}
+
 .completion-cat {
     display: grid;
     width: 70px;
@@ -511,6 +550,13 @@ footer {
     .setup-card { padding-inline: 22px; }
     .game-summary { margin-bottom: 19px; }
     .score-row { justify-content: space-between; gap: 10px; }
+    .lives { margin-top: 16px; }
+    .pixel-heart {
+        width: 24px;
+        height: 24px;
+        font-size: 22px;
+        text-shadow: 0 3px 0 #a5497b;
+    }
     .board-panel { padding: 0 8px 11px; }
     .board-panel > .window-titlebar { margin: 0 -8px 10px; }
     .board-wrap { padding: 4px; }
