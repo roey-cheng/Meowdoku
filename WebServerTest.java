@@ -30,11 +30,27 @@ public class WebServerTest {
                     || !home.body().contains("<dialog id=\"rules-dialog\"")) {
                 throw new AssertionError("Setup should provide the game-rules dialog");
             }
+            if (!home.body().contains("id=\"setup-message\"")) {
+                throw new AssertionError("Setup should provide a visible error message area");
+            }
+            if (!home.body().contains("id=\"lives\"")
+                    || !home.body().contains("id=\"completion-title\"")) {
+                throw new AssertionError("Game UI should show lives and an end-state title");
+            }
+            if (!home.body().contains(
+                    "id=\"lives\" class=\"lives\" role=\"status\" aria-live=\"polite\"")) {
+                throw new AssertionError("Life changes should be announced to screen readers");
+            }
+            if (home.body().split(
+                    "<span class=\"pixel-heart\" aria-hidden=\"true\">\u2665</span>", -1
+            ).length - 1 != 3) {
+                throw new AssertionError("Life counter should use three pixel-font hearts");
+            }
             assertStatus(client, "GET", baseUrl + "/styles.css", 200);
             assertStatus(client, "GET", baseUrl + "/press-start-2p.ttf", 200);
             assertStatus(client, "GET", baseUrl + "/app.js", 200);
             assertStatus(client, "GET", baseUrl + "/private.txt", 404);
-            assertStatus(client, "GET", baseUrl + "/api/game", 404);
+            assertStatus(client, "GET", baseUrl + "/api/game", 405);
             assertStatus(client, "POST", baseUrl + "/api/guess?row=0&column=0", 404);
             assertStatus(client, "POST", baseUrl + "/api/game?size=3", 400);
             assertStatus(client, "POST", baseUrl + "/api/game?size=10", 400);
@@ -48,14 +64,12 @@ public class WebServerTest {
             if (newGame.statusCode() != 200
                     || intField(newGame.body(), "size") != 5
                     || intField(newGame.body(), "catsFound") != 1
+                    || intField(newGame.body(), "livesRemaining") != 3
+                    || newGame.body().contains("\"lost\":true")
                     || newGame.body().contains("solution")) {
                 throw new AssertionError("New-game response is invalid: " + newGame.body());
             }
-
-            HttpResponse<String> state = send(client, "GET", baseUrl + "/api/game");
-            if (state.statusCode() != 200 || !state.body().contains("\"board\":")) {
-                throw new AssertionError("Current game state is missing its board");
-            }
+            assertStatus(client, "GET", baseUrl + "/api/game", 405);
 
             assertStatus(client, "POST", baseUrl + "/api/guess?row=-1&column=0", 400);
             assertStatus(client, "POST", baseUrl + "/api/guess?row=0&column=5", 400);
@@ -69,25 +83,34 @@ public class WebServerTest {
                 throw new AssertionError("Guess response is invalid: " + guess.body());
             }
 
-            HttpResponse<String> smallGame = send(client, "POST",
-                    baseUrl + "/api/game?size=4");
-            boolean complete = smallGame.body().contains("\"complete\":true");
-            for (int row = 0; row < 4 && !complete; row++) {
-                for (int column = 0; column < 4 && !complete; column++) {
-                    HttpResponse<String> turn = send(client, "POST", baseUrl
-                            + "/api/guess?row=" + row + "&column=" + column);
-                    if (turn.statusCode() != 200) {
-                        throw new AssertionError("A valid turn failed: " + turn.body());
-                    }
-                    complete = turn.body().contains("\"complete\":true");
-                    if (complete && !turn.body().contains("\"catsFound\":4")) {
-                        throw new AssertionError("Completed game did not find all cats");
-                    }
+            assertStatus(client, "POST", baseUrl + "/api/game?size=10", 400);
+            HttpResponse<String> preservedGame = send(client, "POST",
+                    baseUrl + "/api/guess?row=0&column=1");
+            if (preservedGame.statusCode() != 200
+                    || intField(preservedGame.body(), "size") != 5
+                    || intField(preservedGame.body(), "guesses") != 2) {
+                throw new AssertionError(
+                        "An invalid replacement should preserve the active game: "
+                                + preservedGame.body());
+            }
+
+            send(client, "POST", baseUrl + "/api/game?size=4");
+            HttpResponse<String> lostGame = null;
+            for (int column = 0; column < 4; column++) {
+                lostGame = send(client, "POST", baseUrl
+                        + "/api/guess?row=0&column=" + column);
+                if (lostGame.statusCode() != 200) {
+                    throw new AssertionError("A valid turn failed: " + lostGame.body());
                 }
             }
-            if (!complete) {
-                throw new AssertionError("The HTTP game could not be completed");
+            if (lostGame == null
+                    || intField(lostGame.body(), "livesRemaining") != 0
+                    || !lostGame.body().contains("\"lost\":true")
+                    || !lostGame.body().contains("\"complete\":false")) {
+                throw new AssertionError("Three wrong guesses should end the HTTP game: "
+                        + (lostGame == null ? "no response" : lostGame.body()));
             }
+            assertStatus(client, "POST", baseUrl + "/api/guess?row=1&column=0", 409);
 
             System.out.println("WebServerTest passed");
         } finally {

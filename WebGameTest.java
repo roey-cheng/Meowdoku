@@ -3,6 +3,7 @@ public class WebGameTest {
         testBrowserPlayerSuppliesOnePendingGuess();
         testGameStartIsIdempotent();
         testPlayTurnUsesBrowserPlayerGuess();
+        testThreeWrongGuessesEndGame();
         System.out.println("WebGameTest passed");
     }
 
@@ -61,6 +62,35 @@ public class WebGameTest {
         consoleGame.playTurn();
         if (consolePlayer.getGuesses() != 1) {
             throw new AssertionError("Console players should also use playTurn()");
+        }
+    }
+
+    private static void testThreeWrongGuessesEndGame() {
+        BrowserPlayer player = new BrowserPlayer("Web Player", 4);
+        MeowdokuGame game = new MeowdokuGame(player, 4);
+        game.start();
+
+        int wrongGuesses = 0;
+        for (int row = 0; row < 4 && wrongGuesses < 3; row++) {
+            for (int column = 0; column < 4 && wrongGuesses < 3; column++) {
+                player.setNextGuess(new Position(row, column));
+                if (game.playTurn() == GuessResult.WRONG) wrongGuesses++;
+            }
+        }
+
+        if (wrongGuesses != 3 || player.getLivesRemaining() != 0) {
+            throw new AssertionError("Three wrong guesses should use all three lives");
+        }
+        if (!game.isLost() || !game.isOver() || game.isComplete()) {
+            throw new AssertionError("The third wrong guess should end the game as a loss");
+        }
+
+        player.setNextGuess(new Position(3, 3));
+        try {
+            game.playTurn();
+            throw new AssertionError("A finished game should reject further guesses");
+        } catch (IllegalStateException expected) {
+            // Expected: no turns are accepted after the game ends.
         }
     }
 }

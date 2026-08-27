@@ -7,14 +7,14 @@ assert.ok(fs.existsSync(modulePath), "click resolver module should exist");
 const createClickResolver = require(modulePath);
 const setCellMarked = createClickResolver.setCellMarked;
 const handleCellKey = createClickResolver.handleCellKey;
-const setCellRegion = createClickResolver.setCellRegion;
+const livesLabel = createClickResolver.livesLabel;
 
 assert.equal(typeof setCellMarked, "function",
     "cell marks should be updated without rebuilding the board");
 assert.equal(typeof handleCellKey, "function",
     "keyboard users should be able to mark and guess explicitly");
-assert.equal(typeof setCellRegion, "function",
-    "cells should apply region styling without visible labels");
+assert.equal(livesLabel(3), "3 wrong guesses remaining");
+assert.equal(livesLabel(1), "1 wrong guess remaining");
 
 function fakeTimer() {
     let callback = null;
@@ -90,14 +90,6 @@ function resolverFixture() {
     timer.run();
     assert.deepEqual(calls, { single: 2, double: 0 },
         "a later single click should be allowed to toggle the mark off");
-}
-
-{
-    const button = { className: "", dataset: {} };
-    setCellRegion(button, 3);
-    assert.equal(button.className, "cell region-3");
-    assert.equal(button.dataset.region, undefined,
-        "region styling should not add a visible letter to the cell");
 }
 
 {

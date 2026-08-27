@@ -57,7 +57,11 @@ class GameBoard{
         return false;
     }
     
-    public GameBoard(int size){this.size=size;
+    public GameBoard(int size){
+        if(size<4||size>9){
+            throw new IllegalArgumentException("Board size must be between 4 and 9");
+        }
+        this.size=size;
         solution = generateSolution(size);
         board = new Cell[size][size];
         initialiseBoard();
@@ -128,6 +132,9 @@ class GameBoard{
     public GuessResult checkGuess(Position position){
         int row = position.getRow();
         int column = position.getColumn();
+        if(row<0||row>=size||column<0||column>=size){
+            throw new IllegalArgumentException("Guess is outside the board");
+        }
         Cell cellToCheck = board[row][column];
         if(cellToCheck.getState()!=CellState.HIDDEN){return GuessResult.ALREADY_GUESSED;
         }else if(solution[row]==column){

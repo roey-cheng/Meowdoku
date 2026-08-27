@@ -35,6 +35,7 @@
                         <option value="9">9 × 9</option>
                     </select>
                     <button id="new-game" class="primary-button" type="button">Start game</button>
+                    <div id="setup-message" class="setup-message" role="status" aria-live="polite"></div>
                 </div>
             </section>
 
@@ -52,6 +53,7 @@
                             <li>There is exactly one cat in every colour region.</li>
                             <li>Cats never touch, including diagonally.</li>
                             <li>A correct guess earns 10 points; a wrong guess costs 1.</li>
+                            <li>You have three wrong guesses before the game ends.</li>
                             <li>Single-click to mark empty; quickly double-click to guess.</li>
                         </ul>
                         <button class="primary-button dialog-ok" value="ok">OK</button>
@@ -66,6 +68,11 @@
                         <p>Score: <strong id="score">0</strong></p>
                         <p>Guesses: <strong id="guesses">0</strong></p>
                     </div>
+                    <div id="lives" class="lives" role="status" aria-live="polite" aria-label="3 wrong guesses remaining">
+                        <span class="pixel-heart" aria-hidden="true">♥</span>
+                        <span class="pixel-heart" aria-hidden="true">♥</span>
+                        <span class="pixel-heart" aria-hidden="true">♥</span>
+                    </div>
                 </header>
 
                 <section class="board-panel" aria-label="Meowdoku board">
@@ -78,8 +85,8 @@
 
                         <div id="completion" class="completion-card" hidden>
                             <span class="completion-cat" aria-hidden="true">♥</span>
-                            <p class="eyebrow">Puzzle complete</p>
-                            <h2>You found every cat!</h2>
+                            <p id="completion-kicker" class="eyebrow">Puzzle complete</p>
+                            <h2 id="completion-title">You found every cat!</h2>
                             <p id="completion-summary"></p>
                             <button id="restart" class="primary-button" type="button">Restart</button>
                         </div>

@@ -41,13 +41,13 @@ function setCellMarked(button, marked, label) {
     button.setAttribute("aria-label", label);
 }
 
-function setCellRegion(button, regionId) {
-    button.className = `cell region-${regionId % 9}`;
+function livesLabel(lives) {
+    return `${lives} wrong guess${lives === 1 ? "" : "es"} remaining`;
 }
 
 createClickResolver.setCellMarked = setCellMarked;
 createClickResolver.handleCellKey = handleCellKey;
-createClickResolver.setCellRegion = setCellRegion;
+createClickResolver.livesLabel = livesLabel;
 if (typeof module !== "undefined") module.exports = createClickResolver;
 
 if (typeof document !== "undefined") {
@@ -56,14 +56,19 @@ const gameScreen = document.querySelector("#game-screen");
 const boardElement = document.querySelector("#board");
 const sizeSelect = document.querySelector("#board-size");
 const newGameButton = document.querySelector("#new-game");
+const setupMessage = document.querySelector("#setup-message");
 const restartButton = document.querySelector("#restart");
 const showRulesButton = document.querySelector("#show-rules");
 const rulesDialog = document.querySelector("#rules-dialog");
 const messageElement = document.querySelector("#message");
 const scoreElement = document.querySelector("#score");
 const guessesElement = document.querySelector("#guesses");
+const livesElement = document.querySelector("#lives");
+const heartElements = [...livesElement.querySelectorAll(".pixel-heart")];
 const currentSize = document.querySelector("#current-size");
 const completionCard = document.querySelector("#completion");
+const completionKicker = document.querySelector("#completion-kicker");
+const completionTitle = document.querySelector("#completion-title");
 const completionSummary = document.querySelector("#completion-summary");
 
 let game = null;
@@ -77,6 +82,7 @@ showRulesButton.addEventListener("click", () => rulesDialog.showModal());
 async function startNewGame() {
     if (busy) return;
     setBusy(true);
+    setupMessage.textContent = "";
 
     try {
         game = await requestJson(`/api/game?size=${encodeURIComponent(sizeSelect.value)}`, {
@@ -87,7 +93,7 @@ async function startNewGame() {
         gameScreen.hidden = false;
         renderGame();
     } catch (error) {
-        showMessage(error.message, "error");
+        setupMessage.textContent = error.message;
     } finally {
         setBusy(false);
     }
@@ -106,8 +112,12 @@ function renderGame(focusRequest = null) {
 
     scoreElement.textContent = game.score;
     guessesElement.textContent = game.guesses;
+    heartElements.forEach((heart, index) => {
+        heart.classList.toggle("spent", index >= game.livesRemaining);
+    });
+    livesElement.setAttribute("aria-label", livesLabel(game.livesRemaining));
     currentSize.textContent = `Size: ${game.size}×${game.size}`;
-    showMessage(game.message, game.complete ? "success" : "");
+    showMessage(game.message, game.complete ? "success" : game.lost ? "error" : "");
 
     boardElement.innerHTML = "";
     boardElement.style.gridTemplateColumns = `repeat(${game.size}, 1fr)`;
@@ -120,8 +130,12 @@ function renderGame(focusRequest = null) {
         }
     }
 
-    completionCard.hidden = !game.complete;
-    if (game.complete) {
+    const gameOver = isGameOver();
+    completionCard.hidden = !gameOver;
+    completionCard.classList.toggle("lost", game.lost);
+    if (gameOver) {
+        completionKicker.textContent = game.lost ? "Out of chances" : "Puzzle complete";
+        completionTitle.textContent = game.lost ? "Game over!" : "You found every cat!";
         completionSummary.textContent = `Final score: ${game.score} points from ${game.guesses} guesses.`;
         requestAnimationFrame(() => restartButton.focus());
     } else if (focusRequest) {
@@ -133,7 +147,7 @@ function createCell(row, column) {
     const cell = game.board[row][column];
     const button = document.createElement("button");
     button.type = "button";
-    setCellRegion(button, cell.regionId);
+    button.className = `cell region-${cell.regionId % 9}`;
     button.dataset.row = row;
     button.dataset.column = column;
 
@@ -147,7 +161,7 @@ function createCell(row, column) {
         button.innerHTML = '<span class="mark-token" aria-hidden="true">×</span>';
     }
 
-    if (game.complete) button.disabled = true;
+    if (isGameOver()) button.disabled = true;
 
     button.setAttribute("aria-label", cellLabel(
         row, column, cell, localMarks.has(cellKey(row, column))
@@ -165,7 +179,7 @@ function createCell(row, column) {
 }
 
 function toggleMark(row, column, button) {
-    if (!game || busy || game.complete) return;
+    if (!game || busy || isGameOver()) return;
     if (game.board[row][column].state !== "HIDDEN") return;
 
     const key = cellKey(row, column);
@@ -179,7 +193,7 @@ function toggleMark(row, column, button) {
 }
 
 async function guessCell(row, column) {
-    if (!game || busy || game.complete) return;
+    if (!game || busy || isGameOver()) return;
     if (game.board[row][column].state !== "HIDDEN") return;
 
     setBusy(true);
@@ -198,6 +212,10 @@ async function guessCell(row, column) {
 
 function cellKey(row, column) {
     return `${row},${column}`;
+}
+
+function isGameOver() {
+    return game.complete || game.lost;
 }
 
 function restoreBoardFocus({ row, column }) {
