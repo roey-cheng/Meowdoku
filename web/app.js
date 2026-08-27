@@ -41,8 +41,13 @@ function setCellMarked(button, marked, label) {
     button.setAttribute("aria-label", label);
 }
 
+function setCellRegion(button, regionId) {
+    button.className = `cell region-${regionId % 9}`;
+}
+
 createClickResolver.setCellMarked = setCellMarked;
 createClickResolver.handleCellKey = handleCellKey;
+createClickResolver.setCellRegion = setCellRegion;
 if (typeof module !== "undefined") module.exports = createClickResolver;
 
 if (typeof document !== "undefined") {
@@ -128,10 +133,9 @@ function createCell(row, column) {
     const cell = game.board[row][column];
     const button = document.createElement("button");
     button.type = "button";
-    button.className = `cell region-${cell.regionId % 9}`;
+    setCellRegion(button, cell.regionId);
     button.dataset.row = row;
     button.dataset.column = column;
-    button.dataset.region = String.fromCharCode(65 + cell.regionId);
 
     if (cell.state === "FOUND_CAT") {
         button.innerHTML = '<span class="cat-token" aria-hidden="true">=^.^=</span>';
