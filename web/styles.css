@@ -307,7 +307,7 @@ select:focus-visible {
     position: relative;
     width: min(100%, 650px);
     margin: 0 auto 28px;
-    padding: 60px clamp(18px, 4vw, 32px) 22px;
+    padding: 44px clamp(14px, 3vw, 24px) 12px;
     overflow: hidden;
     text-align: center;
 }
@@ -329,21 +329,21 @@ select:focus-visible {
 
 .game-summary h1 {
     color: #66427d;
-    font-size: clamp(1.8rem, 7vw, 3.05rem);
+    font-size: clamp(1.25rem, 4.5vw, 2rem);
     letter-spacing: -.08em;
 }
 
 .score-row {
     display: flex;
     justify-content: center;
-    gap: clamp(32px, 11vw, 96px);
-    margin-top: 14px;
+    gap: clamp(16px, 7vw, 36px);
+    margin-top: 8px;
 }
 
 .score-row p {
     margin: 0;
     color: #934275;
-    font-size: clamp(1.08rem, 4vw, 1.65rem);
+    font-size: clamp(0.9rem, 3.3vw, 1.28rem);
     font-weight: 900;
 }
 
@@ -351,8 +351,8 @@ select:focus-visible {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 14px;
-    margin-top: 20px;
+    gap: 10px;
+    margin-top: 10px;
 }
 
 .pixel-heart {
@@ -361,7 +361,7 @@ select:focus-visible {
     height: 32px;
     place-items: center;
     color: #e879ad;
-    font-size: 30px;
+    font-size: 23px;
     line-height: 1;
     text-shadow: 0 4px 0 #a5497b;
 }
@@ -548,13 +548,16 @@ footer {
     .page-shell { padding: 17px 8px; }
     .setup-screen { min-height: calc(100vh - 70px); }
     .setup-card { padding-inline: 22px; }
-    .game-summary { margin-bottom: 19px; }
-    .score-row { justify-content: space-between; gap: 10px; }
-    .lives { margin-top: 16px; }
+    .game-summary { margin-bottom: 12px; padding-top: 10px; }
+    .game-summary::before { margin-bottom: 4px; }
+    .game-summary h1 { font-size: 1.05rem; }
+    .score-row { justify-content: space-between; gap: 6px; }
+    .score-row p { font-size: .72rem; }
+    .lives { margin-top: 10px; gap: 8px; }
     .pixel-heart {
-        width: 24px;
-        height: 24px;
-        font-size: 22px;
+        width: 22px;
+        height: 22px;
+        font-size: 19px;
         text-shadow: 0 3px 0 #a5497b;
     }
     .board-panel { padding: 0 8px 11px; }
