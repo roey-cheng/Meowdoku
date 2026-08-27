@@ -33,7 +33,7 @@ class MeowdokuGame{
         return player.allCatsFound(numberOfCats);
     }
 
-    public boolean isLost(){return player.getLivesRemaining()==0;}
+    public boolean isLost(){return player.getLivesRemaining() <= 0;}
 
     public boolean isOver(){return isComplete()||isLost();}
 

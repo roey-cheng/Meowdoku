@@ -3,7 +3,7 @@
  * Purpose: Tracks a player's guesses, cats found, and score while defining how guesses are made.
  */
 abstract class Player{
-    private static final int MAX_WRONG_GUESSES=3;
+    private static final int MAX_WRONG_GUESSES = 3;
     private String name;
     private int guesses=0;
     private int catsFound=0;
@@ -15,7 +15,7 @@ abstract class Player{
     public int getScore(){return score;}
     public int getGuesses(){return guesses;}
     public int getCatsFound(){return catsFound;}
-    public int getLivesRemaining(){return MAX_WRONG_GUESSES-wrongGuesses;}
+    public int getLivesRemaining(){return Math.max(0, MAX_WRONG_GUESSES-wrongGuesses);}
     public void recordGuess(GuessResult result){guesses++;
         score += result.getScore();
         if(result==GuessResult.CORRECT){catsFound++;}
