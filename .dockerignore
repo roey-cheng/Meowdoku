@@ -1,0 +1,14 @@
+.git
+.gitignore
+.github
+tmp
+tmp-*
+tmp-test
+out
+*.class
+.idea
+.vscode
+*.iml
+*.log
+Dockerfile
+README.md
