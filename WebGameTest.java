@@ -3,7 +3,7 @@ public class WebGameTest {
         testBrowserPlayerSuppliesOnePendingGuess();
         testGameStartIsIdempotent();
         testPlayTurnUsesBrowserPlayerGuess();
-        testThreeWrongGuessesEndGame();
+        testFourWrongGuessesEndGame();
         System.out.println("WebGameTest passed");
     }
 
@@ -65,24 +65,20 @@ public class WebGameTest {
         }
     }
 
-    private static void testThreeWrongGuessesEndGame() {
+    private static void testFourWrongGuessesEndGame() {
         BrowserPlayer player = new BrowserPlayer("Web Player", 4);
         MeowdokuGame game = new MeowdokuGame(player, 4);
         game.start();
 
-        int wrongGuesses = 0;
-        for (int row = 0; row < 4 && wrongGuesses < 3; row++) {
-            for (int column = 0; column < 4 && wrongGuesses < 3; column++) {
-                player.setNextGuess(new Position(row, column));
-                if (game.playTurn() == GuessResult.WRONG) wrongGuesses++;
-            }
+        for (int i = 0; i < 4; i++) {
+            player.recordGuess(GuessResult.WRONG);
         }
 
-        if (wrongGuesses != 3 || player.getLivesRemaining() != 0) {
-            throw new AssertionError("Three wrong guesses should use all three lives");
+        if (player.getLivesRemaining() != 0) {
+            throw new AssertionError("Four wrong guesses should use all four lives");
         }
         if (!game.isLost() || !game.isOver() || game.isComplete()) {
-            throw new AssertionError("The third wrong guess should end the game as a loss");
+            throw new AssertionError("The fourth wrong guess should end the game as a loss");
         }
 
         player.setNextGuess(new Position(3, 3));

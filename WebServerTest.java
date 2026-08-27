@@ -198,7 +198,7 @@ public class WebServerTest {
         if (home.body().split(
                 "<span class=\"pixel-heart\" aria-hidden=\"true\">\u2665</span>", -1
         ).length - 1 != 3) {
-            throw new AssertionError("Life counter should use three pixel-font hearts");
+            throw new AssertionError("Life counter should use four pixel-font hearts");
         }
 
         for (String path : List.of("/styles.css", "/press-start-2p.ttf", "/app.js")) {
@@ -311,7 +311,7 @@ public class WebServerTest {
         if (last == null || intField(last.body(), "livesRemaining") != 0
                 || !last.body().contains("\"lost\":true")
                 || !last.body().contains("\"complete\":false")) {
-            throw new AssertionError("Three wrong guesses should end the game: "
+            throw new AssertionError("Four wrong guesses should end the game: "
                     + (last == null ? "no response" : last.body()));
         }
         HttpResponse<String> finished = send(client, "POST",

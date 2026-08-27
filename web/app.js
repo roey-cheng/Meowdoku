@@ -135,8 +135,7 @@ function renderGame(focusRequest = null) {
     scoreElement.textContent = game.score;
     guessesElement.textContent = game.guesses;
     heartElements.forEach((heart, index) => {
-        const heartsToShow = game.lost ? 0 : game.livesRemaining + 1;
-        heart.classList.toggle("spent", index >= Math.max(0, heartsToShow));
+        heart.classList.toggle("spent", index >= game.livesRemaining);
     });
     livesElement.setAttribute("aria-label", livesLabel(game.livesRemaining));
     currentSize.textContent = `Size: ${game.size}×${game.size}`;
