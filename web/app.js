@@ -1,7 +1,7 @@
 function createClickResolver({
     onSingle,
     onDouble,
-    delay = 300,
+    delay = 230,
     setTimer = setTimeout,
     clearTimer = clearTimeout
 }) {
