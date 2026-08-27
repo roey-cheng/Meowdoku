@@ -72,8 +72,9 @@ public class WebMain {
                 sendJson(exchange, 404, errorJson("Not found"));
                 return;
             }
-            if (!exchange.getRequestMethod().equals("GET")) {
-                methodNotAllowed(exchange, "GET");
+            String method = exchange.getRequestMethod();
+            if (!method.equals("GET") && !method.equals("HEAD")) {
+                methodNotAllowed(exchange, "GET, HEAD");
                 return;
             }
             sendJson(exchange, 200, "{\"status\":\"ok\"}");
@@ -355,8 +356,9 @@ public class WebMain {
     }
 
     private static void serveStaticFile(HttpExchange exchange) throws IOException {
-        if (!exchange.getRequestMethod().equals("GET")) {
-            methodNotAllowed(exchange, "GET");
+        String method = exchange.getRequestMethod();
+        if (!method.equals("GET") && !method.equals("HEAD")) {
+            methodNotAllowed(exchange, "GET, HEAD");
             return;
         }
 
@@ -389,8 +391,8 @@ public class WebMain {
         addCommonHeaders(exchange);
         exchange.getResponseHeaders().set("Content-Type", contentType);
         exchange.getResponseHeaders().set("Cache-Control", "no-cache");
-        exchange.sendResponseHeaders(200, body.length);
-        exchange.getResponseBody().write(body);
+        exchange.sendResponseHeaders(200, isHeadRequest(exchange) ? -1L : body.length);
+        if (!isHeadRequest(exchange)) exchange.getResponseBody().write(body);
         exchange.close();
     }
 
@@ -406,9 +408,13 @@ public class WebMain {
         addCommonHeaders(exchange);
         exchange.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
         exchange.getResponseHeaders().set("Cache-Control", "no-store");
-        exchange.sendResponseHeaders(status, body.length);
-        exchange.getResponseBody().write(body);
+        exchange.sendResponseHeaders(status, isHeadRequest(exchange) ? -1L : body.length);
+        if (!isHeadRequest(exchange)) exchange.getResponseBody().write(body);
         exchange.close();
+    }
+
+    private static boolean isHeadRequest(HttpExchange exchange) {
+        return "HEAD".equals(exchange.getRequestMethod());
     }
 
     private static void addCommonHeaders(HttpExchange exchange) {

@@ -152,6 +152,14 @@ public class WebServerTest {
         assertNoSessionCookie(health);
         assertSecurityHeaders(health);
 
+        HttpResponse<String> headHealth = send(client, "HEAD", baseUrl + "/health");
+        assertStatus(headHealth, 200);
+        if (!headHealth.body().isEmpty()) {
+            throw new AssertionError("HEAD /health must not return a response body");
+        }
+        assertNoSessionCookie(headHealth);
+        assertSecurityHeaders(headHealth);
+
         HttpResponse<String> home = send(client, "GET", baseUrl + "/");
         if (home.statusCode() != 200 || !home.body().contains("Meowdoku")) {
             throw new AssertionError("Home page did not load the Meowdoku UI");
@@ -175,6 +183,14 @@ public class WebServerTest {
                 || !home.body().contains("id=\"completion-title\"")) {
             throw new AssertionError("Game UI should show lives and an end-state title");
         }
+
+        HttpResponse<String> headHome = send(client, "HEAD", baseUrl + "/");
+        assertStatus(headHome, 200);
+        if (!headHome.body().isEmpty()) {
+            throw new AssertionError("HEAD / must not return a response body");
+        }
+        assertNoSessionCookie(headHome);
+        assertSecurityHeaders(headHome);
         if (!home.body().contains(
                 "id=\"lives\" class=\"lives\" role=\"status\" aria-live=\"polite\"")) {
             throw new AssertionError("Life changes should be announced to screen readers");
@@ -429,9 +445,7 @@ public class WebServerTest {
 
     private static HttpRequest.Builder request(String method, String url) {
         HttpRequest.Builder request = HttpRequest.newBuilder(URI.create(url));
-        return method.equals("POST")
-                ? request.POST(HttpRequest.BodyPublishers.noBody())
-                : request.GET();
+        return request.method(method, HttpRequest.BodyPublishers.noBody());
     }
 
     private static int intField(String json, String field) {
