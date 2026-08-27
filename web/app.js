@@ -78,6 +78,7 @@ const localMarks = new Set();
 newGameButton.addEventListener("click", startNewGame);
 restartButton.addEventListener("click", showSetup);
 showRulesButton.addEventListener("click", () => rulesDialog.showModal());
+restoreExistingGame();
 
 async function startNewGame() {
     if (busy) return;
@@ -105,6 +106,27 @@ function showSetup() {
     gameScreen.hidden = true;
     setupScreen.hidden = false;
     sizeSelect.focus();
+}
+
+async function restoreExistingGame() {
+    setBusy(true);
+    setupMessage.textContent = "";
+    try {
+        const response = await fetch("/api/game", {method: "GET"});
+        if (!response.ok) {
+            showSetup();
+            return;
+        }
+        game = await response.json();
+        localMarks.clear();
+        setupScreen.hidden = true;
+        gameScreen.hidden = false;
+        renderGame();
+    } catch (error) {
+        showSetup();
+    } finally {
+        setBusy(false);
+    }
 }
 
 function renderGame(focusRequest = null) {

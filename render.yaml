@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: meowdoku
+    runtime: docker
+    region: singapore
+    plan: starter
+    rootDir: .
+    dockerfilePath: Dockerfile
+    healthCheckPath: /health
+    autoDeploy: false
+    envVars:
+      - key: SESSION_COOKIE_SECURE
+        value: "true"
+      - key: PUBLIC_ORIGIN
+        value: "https://your-domain.example"
