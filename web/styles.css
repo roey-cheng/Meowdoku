@@ -632,8 +632,50 @@ footer {
     .game-summary,
     .board-panel,
     .rules-dialog {
-        --frame-notch: 6px;
-        --frame-step: 3px;
+        --frame-notch: 4px;
+        --frame-step: 2px;
+        box-shadow: inset 2px 2px 0 #ffffff;
+        filter: drop-shadow(4px 4px 0 var(--pixel-shadow));
+    }
+    .setup-card,
+    .game-summary,
+    .board-panel,
+    .completion-card,
+    .rules-dialog,
+    .rules-button,
+    select,
+    .primary-button,
+    .setup-cat,
+    .completion-cat,
+    .board-wrap,
+    .board,
+    .cat-token,
+    .message { border-width: 2px; }
+    .window-titlebar,
+    .game-summary::before,
+    .completion-card::before { border-bottom-width: 2px; }
+    .window-controls,
+    .dialog-close { border-width: 1px; }
+    .completion-card {
+        box-shadow:
+            4px 0 0 var(--purple-dark),
+            0 4px 0 var(--purple-dark),
+            4px 4px 0 var(--pixel-shadow),
+            inset 2px 2px 0 #ffffff;
+    }
+    .setup-cat { box-shadow: 3px 3px 0 var(--pink); }
+    .rules-button { box-shadow: 3px 3px 0 var(--purple-dark); }
+    select { box-shadow: inset 2px 2px 0 #e3cdee; }
+    .primary-button { box-shadow: 3px 3px 0 var(--purple-dark); }
+    .primary-button:active:not(:disabled) { box-shadow: 2px 2px 0 var(--purple-dark); }
+    .board { box-shadow: 3px 3px 0 #8a5b91; }
+    .cat-token { box-shadow: 2px 2px 0 #7c5985; }
+    .message { box-shadow: 2px 2px 0 #d18fbd; }
+    .completion-cat { box-shadow: 3px 3px 0 var(--pink); }
+    .completion-card.lost .completion-cat { box-shadow: 3px 3px 0 #c6a5c6; }
+    .completion-card .primary-button {
+        outline-width: 2px;
+        outline-offset: -6px;
     }
     .cell { border-width: 1px; }
     .message { font-size: .76rem; }
