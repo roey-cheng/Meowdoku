@@ -657,12 +657,16 @@ footer {
     .window-controls,
     .dialog-close { border-width: 1px; }
     .completion-card {
+        width: min(78%, 330px);
+        padding: 44px 16px 20px;
+        text-align: center;
         box-shadow:
             4px 0 0 var(--purple-dark),
             0 4px 0 var(--purple-dark),
             4px 4px 0 var(--pixel-shadow),
             inset 2px 2px 0 #ffffff;
     }
+    .completion-card::before { text-align: center; }
     .setup-cat { box-shadow: 3px 3px 0 var(--pink); }
     .rules-button { box-shadow: 3px 3px 0 var(--purple-dark); }
     select { box-shadow: inset 2px 2px 0 #e3cdee; }
@@ -673,6 +677,10 @@ footer {
     .message { box-shadow: 2px 2px 0 #d18fbd; }
     .completion-cat { box-shadow: 3px 3px 0 var(--pink); }
     .completion-card.lost .completion-cat { box-shadow: 3px 3px 0 #c6a5c6; }
+    .completion-card .eyebrow,
+    .completion-card h2,
+    .completion-card p:not(.eyebrow),
+    .completion-card .primary-button { text-align: center; }
     .completion-card .primary-button {
         outline-width: 2px;
         outline-offset: -6px;
