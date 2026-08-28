@@ -2,23 +2,42 @@ function createClickResolver({
     onSingle,
     onDouble,
     delay = 230,
+    doubleDelay = 400,
+    now = Date.now,
     setTimer = setTimeout,
     clearTimer = clearTimeout
 }) {
     let pendingClick = null;
+    let firstClickAt = null;
+    let singleApplied = false;
 
     return event => {
         if (event.detail === 0) return;
 
-        if (pendingClick !== null) {
-            clearTimer(pendingClick);
-            pendingClick = null;
+        const clickAt = now();
+        if (firstClickAt !== null && clickAt - firstClickAt <= doubleDelay) {
+            if (pendingClick !== null) {
+                clearTimer(pendingClick);
+                pendingClick = null;
+            } else if (singleApplied) {
+                onSingle();
+            }
+            firstClickAt = null;
+            singleApplied = false;
             onDouble();
             return;
         }
 
+        if (pendingClick !== null) {
+            clearTimer(pendingClick);
+            onSingle();
+        }
+
+        firstClickAt = clickAt;
+        singleApplied = false;
         pendingClick = setTimer(() => {
             pendingClick = null;
+            singleApplied = true;
             onSingle();
         }, delay);
     };

@@ -40,12 +40,13 @@ function fakeTimer() {
     };
 }
 
-function resolverFixture() {
+function resolverFixture(now = Date.now) {
     const timer = fakeTimer();
     const calls = { single: 0, double: 0 };
     const resolveClick = createClickResolver({
         onSingle: () => calls.single++,
         onDouble: () => calls.double++,
+        now,
         setTimer: callback => timer.set(callback),
         clearTimer: () => timer.clear()
     });
@@ -97,9 +98,40 @@ function resolverFixture() {
 }
 
 {
-    const { timer, calls, resolveClick } = resolverFixture();
+    const timer = fakeTimer();
+    const calls = { single: 0, double: 0 };
+    let currentTime = 0;
+    let marked = false;
+    const resolveClick = createClickResolver({
+        onSingle: () => {
+            calls.single++;
+            marked = !marked;
+        },
+        onDouble: () => calls.double++,
+        now: () => currentTime,
+        setTimer: callback => timer.set(callback),
+        clearTimer: () => timer.clear()
+    });
+
+    resolveClick({ detail: 1 });
+    currentTime = 230;
+    timer.run();
+    assert.equal(marked, true, "the first tap should still mark after 230ms");
+
+    currentTime = 320;
+    resolveClick({ detail: 1 });
+    assert.equal(timer.hasPending(), false,
+        "a slightly slower double tap should not schedule another mark");
+    assert.equal(marked, false, "the temporary mark should be undone");
+    assert.deepEqual(calls, { single: 2, double: 1 });
+}
+
+{
+    let currentTime = 0;
+    const { timer, calls, resolveClick } = resolverFixture(() => currentTime);
     resolveClick({ detail: 1 });
     timer.run();
+    currentTime = 401;
     resolveClick({ detail: 1 });
     timer.run();
     assert.deepEqual(calls, { single: 2, double: 0 },
