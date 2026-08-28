@@ -657,8 +657,8 @@ footer {
     .window-controls,
     .dialog-close { border-width: 1px; }
     .completion-card {
-        width: min(78%, 330px);
-        padding: 44px 16px 20px;
+        width: min(72%, 300px);
+        padding: 40px 14px 16px;
         text-align: center;
         box-shadow:
             4px 0 0 var(--purple-dark),
