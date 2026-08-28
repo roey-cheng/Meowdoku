@@ -45,9 +45,18 @@ function livesLabel(lives) {
     return `${lives} wrong guess${lives === 1 ? "" : "es"} remaining`;
 }
 
+async function recoverGuessState(request, row, column) {
+    const recoveredGame = await request("/api/game", { method: "GET" });
+    return {
+        game: recoveredGame,
+        processed: recoveredGame.board[row][column].state !== "HIDDEN"
+    };
+}
+
 createClickResolver.setCellMarked = setCellMarked;
 createClickResolver.handleCellKey = handleCellKey;
 createClickResolver.livesLabel = livesLabel;
+createClickResolver.recoverGuessState = recoverGuessState;
 if (typeof module !== "undefined") module.exports = createClickResolver;
 
 if (typeof document !== "undefined") {
@@ -224,7 +233,27 @@ async function guessCell(row, column) {
         localMarks.delete(cellKey(row, column));
         renderGame({ row, column });
     } catch (error) {
-        showMessage(error.message, "error");
+        if (!(error instanceof TypeError)) {
+            showMessage(error.message, "error");
+            return;
+        }
+
+        try {
+            const recovery = await recoverGuessState(requestJson, row, column);
+            game = recovery.game;
+            if (recovery.processed) localMarks.delete(cellKey(row, column));
+            renderGame({ row, column });
+            if (!recovery.processed) {
+                showMessage("Connection interrupted. Double-tap again.", "error");
+            }
+        } catch (recoveryError) {
+            showMessage(
+                recoveryError instanceof TypeError
+                    ? "Connection problem. Please try again."
+                    : recoveryError.message,
+                "error"
+            );
+        }
     } finally {
         setBusy(false);
     }

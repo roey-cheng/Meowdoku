@@ -8,11 +8,14 @@ const createClickResolver = require(modulePath);
 const setCellMarked = createClickResolver.setCellMarked;
 const handleCellKey = createClickResolver.handleCellKey;
 const livesLabel = createClickResolver.livesLabel;
+const recoverGuessState = createClickResolver.recoverGuessState;
 
 assert.equal(typeof setCellMarked, "function",
     "cell marks should be updated without rebuilding the board");
 assert.equal(typeof handleCellKey, "function",
     "keyboard users should be able to mark and guess explicitly");
+assert.equal(typeof recoverGuessState, "function",
+    "failed guesses should recover the latest server state");
 assert.equal(livesLabel(3), "3 wrong guesses remaining");
 assert.equal(livesLabel(1), "1 wrong guess remaining");
 
@@ -119,4 +122,55 @@ function resolverFixture() {
     assert.equal(attributes["aria-label"], "Row 1, column 1, hidden");
 }
 
-console.log("ClickResolverTest passed");
+function recoveredGame(cellState) {
+    const board = Array.from({ length: 4 }, (_, row) =>
+        Array.from({ length: 4 }, (_, column) => ({
+            regionId: (row + column) % 4,
+            state: "HIDDEN"
+        }))
+    );
+    board[1][2].state = cellState;
+    return {
+        size: 4,
+        score: cellState === "HIDDEN" ? 0 : -1,
+        guesses: cellState === "HIDDEN" ? 0 : 1,
+        catsFound: 1,
+        livesRemaining: cellState === "HIDDEN" ? 4 : 3,
+        complete: false,
+        lost: false,
+        message: "Session restored",
+        board
+    };
+}
+
+async function testGuessRecovery() {
+    const calls = [];
+    const processedGame = recoveredGame("WRONG_GUESS");
+    const processed = await recoverGuessState(async (url, options) => {
+        calls.push({ url, options });
+        return processedGame;
+    }, 1, 2);
+    assert.deepEqual(calls, [{ url: "/api/game", options: { method: "GET" } }]);
+    assert.equal(processed.game, processedGame);
+    assert.equal(processed.processed, true,
+        "a changed cell means the failed POST reached the server");
+
+    const pending = await recoverGuessState(
+        async () => recoveredGame("HIDDEN"), 1, 2
+    );
+    assert.equal(pending.processed, false,
+        "a hidden cell means the player should double-tap again");
+
+    await assert.rejects(
+        recoverGuessState(async () => { throw new TypeError("offline"); }, 1, 2),
+        /offline/,
+        "a failed recovery GET should be handled by the UI"
+    );
+}
+
+testGuessRecovery()
+    .then(() => console.log("ClickResolverTest passed"))
+    .catch(error => {
+        console.error(error);
+        process.exitCode = 1;
+    });
