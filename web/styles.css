@@ -678,6 +678,8 @@ footer {
         outline-offset: -6px;
     }
     .cell { border-width: 1px; }
+    .wrong-token { text-shadow: 1px 1px 0 #724a78; }
+    .mark-token { text-shadow: 1px 1px 0 #ffffff; }
     .message { font-size: .76rem; }
 }
 
